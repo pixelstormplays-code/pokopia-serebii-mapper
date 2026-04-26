@@ -25,7 +25,7 @@ Most players build by "feel." **Nuh Uh.** This project uses pixel-mapping algori
 
 ## 📜 Credits & Instructions
 * **Data Source:** All item data is referenced from [Serebii.net](https://www.serebii.net/pokemonpokopia/items.shtml). 
-* **Developer:** [Your Handle/Name]
+* **Developer:** [PixelstormPlaysCode]
 * **Current Version:** 1.0.0 (The Foundation)
 
 
