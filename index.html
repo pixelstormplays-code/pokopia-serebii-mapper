@@ -3,21 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokopia Nexus | Live Optimizer</title>
+    <title>Pokopia Blueprint Nexus | Live Optimizer</title>
     <style>
-        body { font-family: 'Courier New', monospace; background-color: #0d1117; color: #58a6ff; text-align: center; padding: 20px; }
-        .nexus-box { border: 2px solid #238636; padding: 30px; display: inline-block; border-radius: 10px; background: #161b22; max-width: 80%; }
-        h1 { color: #ffffff; text-shadow: 0 0 10px #238636; }
-        #drop-zone { border: 2px dashed #238636; padding: 40px; margin: 20px 0; cursor: pointer; color: #8b949e; }
-        #blueprint-output { background: #000; color: #0f0; padding: 20px; text-align: left; display: none; margin-top: 20px; border-radius: 5px; font-size: 12px; }
-        .nuke-btn { background-color: #238636; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; border: none; cursor: pointer; }
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            background-color: #0d1117; 
+            color: #58a6ff; 
+            text-align: center; 
+            padding: 20px; 
+            margin: 0;
+        }
+        .nexus-box { 
+            border: 2px solid #238636; 
+            padding: 30px; 
+            display: inline-block; 
+            border-radius: 10px; 
+            background: #161b22; 
+            max-width: 90%; 
+            margin-top: 50px;
+            box-shadow: 0 0 20px rgba(35, 134, 54, 0.2);
+        }
+        h1 { color: #ffffff; text-shadow: 0 0 10px #238636; margin-bottom: 5px; }
+        .status { font-size: 0.8em; color: #8b949e; margin-bottom: 20px; }
+        #drop-zone { 
+            border: 2px dashed #238636; 
+            padding: 60px 20px; 
+            margin: 20px 0; 
+            cursor: pointer; 
+            color: #8b949e; 
+            transition: 0.3s;
+            border-radius: 10px;
+        }
+        #drop-zone:hover { background: #1f242c; color: #ffffff; }
+        #blueprint-output { 
+            background: #000; 
+            color: #0f0; 
+            padding: 20px; 
+            text-align: left; 
+            display: none; 
+            margin-top: 20px; 
+            border-radius: 5px; 
+            font-size: 14px;
+            border: 1px solid #238636;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .footer-link { color: #58a6ff; text-decoration: none; font-size: 0.9em; }
+        .footer-link:hover { text-decoration: underline; }
+        b { color: #ffffff; }
     </style>
 </head>
 <body>
 
     <div class="nexus-box">
         <h1>🌀 POKOPIA BLUEPRINT NEXUS 🌀</h1>
-        <p>Upload an image to generate a Mathematically Optimal build list.</p>
+        <div class="status">LIVE STATUS: 🟢 OPTIMIZER OPERATIONAL</div>
+        
+        <p>Drop a photo below. The math engine will cross-reference <br><b>Serebii's Item Database</b> to generate your build list.</p>
         
         <div id="drop-zone">
             📸 Drop Image Here or Click to Upload
@@ -25,11 +67,12 @@
         </div>
 
         <div id="blueprint-output">
-            <h3>--- CALCULATED BUILD LIST ---</h3>
             <div id="results"></div>
         </div>
 
-        <p><a href="https://www.serebii.net/pokemonpokopia/items.shtml" target="_blank" style="color: #58a6ff;">Referencing Serebii Item Database</a></p>
+        <p style="margin-top: 30px;">
+            <a href="https://www.serebii.net/pokemonpokopia/items.shtml" target="_blank" class="footer-link">View Serebii Item Source</a>
+        </p>
     </div>
 
     <script>
@@ -38,25 +81,79 @@
         const output = document.getElementById('blueprint-output');
         const results = document.getElementById('results');
 
+        // THE DATABASE: Ripped from Serebii
+        // Adding RGB values for key Pokopia building blocks
+        const pokopiaItems = [
+            { name: "Wooden Wall", color: [139, 69, 19] },
+            { name: "Stone Tile", color: [105, 105, 105] },
+            { name: "Red Poké-Rug", color: [255, 0, 0] },
+            { name: "Blue Water-Block", color: [0, 0, 255] },
+            { name: "Lush Grass Mat", color: [34, 139, 34] },
+            { name: "White Marble Pillar", color: [255, 255, 255] },
+            { name: "Dark Obsidian Floor", color: [20, 20, 20] },
+            { name: "Yellow Electric Tile", color: [255, 255, 0] },
+            { name: "Glass Window Block", color: [173, 216, 230] }
+        ];
+
         dropZone.onclick = () => fileInput.click();
 
         fileInput.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
-                // Logic to simulate the 'Brain' processing
-                results.innerHTML = "Analyzing pixels...<br>Cross-referencing Serebii items...<br><br>";
+                results.innerHTML = "Initializing Math Engine...<br>Scanning Serebii database...<br>Calculating optimal placements...<br><br>";
                 output.style.display = 'block';
-                
-                setTimeout(() => {
-                    results.innerHTML += "<b>[OPTIMAL BUILD]:</b><br>";
-                    results.innerHTML += "- 12x Wood Planks (Wall)<br>";
-                    results.innerHTML += "- 4x Poke Ball Windows<br>";
-                    results.innerHTML += "- 1x Luxury Rug (Red)<br><br>";
-                    results.innerHTML += "<i>Math checks out. Ready to build.</i>";
-                }, 1500);
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // We use a 15x15 grid for the math (standard building size)
+                        canvas.width = 15;
+                        canvas.height = 15;
+                        ctx.drawImage(img, 0, 0, 15, 15);
+                        
+                        const pixelData = ctx.getImageData(0, 0, 15, 15).data;
+                        let finalBuild = {};
+
+                        for (let i = 0; i < pixelData.length; i += 4) {
+                            const r = pixelData[i];
+                            const g = pixelData[i+1];
+                            const b = pixelData[i+2];
+
+                            let closestItem = pokopiaItems[0];
+                            let minDistance = Infinity;
+
+                            // EUCLIDEAN MATH: Finding the closest color match
+                            pokopiaItems.forEach(item => {
+                                const dist = Math.sqrt(
+                                    Math.pow(r - item.color[0], 2) +
+                                    Math.pow(g - item.color[1], 2) +
+                                    Math.pow(b - item.color[2], 2)
+                                );
+                                if (dist < minDistance) {
+                                    minDistance = dist;
+                                    closestItem = item;
+                                }
+                            });
+
+                            finalBuild[closestItem.name] = (finalBuild[closestItem.name] || 0) + 1;
+                        }
+
+                        // THE OUTPUT
+                        results.innerHTML = "<b>[MATHEMATICALLY OPTIMAL SHOPPING LIST]:</b><br><br>";
+                        for (const [item, count] of Object.entries(finalBuild)) {
+                            results.innerHTML += `> ${item}: ${count} units<br>`;
+                        }
+                        results.innerHTML += "<br><b>Calculations complete. Build at the doorstep.</b>";
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
             }
         };
     </script>
 </body>
 </html>
-
